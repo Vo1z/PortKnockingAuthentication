@@ -8,13 +8,14 @@ import java.net.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class AuthenticationServer
 {
     public final int numberOfAuthenticationSockets;
 
     private AuthenticationSocket[] authenticationSockets;
-    private volatile HashSet<String>[] authenticationList;
+    private volatile Set<String>[] authenticationAddresses;
     private boolean isWorking = false;
 
     public AuthenticationServer(int numberOfAuthenticationSockets)
@@ -42,7 +43,7 @@ public class AuthenticationServer
             Arrays.stream(this.authenticationSockets)
                     .forEach(AuthenticationSocket::stopListening);
 
-            this.authenticationList = null;
+            this.authenticationAddresses = null;
             this.authenticationSockets = null;
         }
     }
@@ -52,9 +53,12 @@ public class AuthenticationServer
         try
         {
             this.authenticationSockets = new AuthenticationSocket[this.numberOfAuthenticationSockets];
-            this.authenticationList = new HashSet[this.numberOfAuthenticationSockets];
+            this.authenticationAddresses = new HashSet[this.numberOfAuthenticationSockets];
             for (int i = 0; i < this.authenticationSockets.length; i++)
+            {
                 this.authenticationSockets[i] = new AuthenticationSocket(this, i);
+                this.authenticationAddresses[i] = new HashSet<>();
+            }
         }
         catch (SocketException e)
         {
@@ -88,7 +92,7 @@ public class AuthenticationServer
     public boolean checkAuthentication(String addressOfRequester, int authenticationSocketNumber)
     {
         for(int i = 0; i < authenticationSocketNumber; i++)
-            if (!this.authenticationList[i].contains(addressOfRequester))
+            if (!this.authenticationAddresses[i].contains(addressOfRequester) || this.authenticationAddresses[i] == null)
                 return false;
 
         return true;
@@ -96,13 +100,13 @@ public class AuthenticationServer
 
     public synchronized void addAddressToAuthenticationList(String address, int socketAuthenticationNumber)
     {
-        this.authenticationList[socketAuthenticationNumber].add(address);
+        this.authenticationAddresses[socketAuthenticationNumber].add(address);
     }
 
     public synchronized void removeAddressFromAuthenticationList(String address, int socketAuthenticationNumber)
     {
         for(int i = socketAuthenticationNumber; i >= 0; i--)
-            this.authenticationList[i].remove(address);
+            this.authenticationAddresses[i].remove(address);
     }
 
     //Getters
@@ -120,5 +124,10 @@ public class AuthenticationServer
                 .filter(Objects::nonNull)
                 .mapToInt(AuthenticationSocket::getPort)
                 .toArray();
+    }
+
+    public Set<String>[] getAuthenticationAddresses()
+    {
+        return this.authenticationAddresses;
     }
 }
