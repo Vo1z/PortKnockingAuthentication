@@ -6,12 +6,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class ServerProcessing implements Runnable
+public class ServerProcessing extends Thread
 {
     private final Socket socket;
     private String messageFromClient, messageToClient;
 
-    ServerProcessing(Socket socket, String messageToClient)
+    public ServerProcessing(Socket socket, String messageToClient)
     {
         this.socket = socket;
         this.messageToClient = messageToClient;
