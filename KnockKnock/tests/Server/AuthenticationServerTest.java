@@ -1,3 +1,5 @@
+package Server;
+
 import Server.AuthenticationServer;
 import org.junit.After;
 import org.junit.Assert;

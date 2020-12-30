@@ -1,10 +1,11 @@
-import Utils.Constants;
-import Utils.KnockUtils;
+package Utils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.util.Arrays;
 
 public class KnockUtilsTest
