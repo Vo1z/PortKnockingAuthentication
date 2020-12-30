@@ -20,6 +20,7 @@ public class AuthenticationSocket extends Thread
         this.authenticationSocketNumber = authenticationNumber;
         this.server = server;
         this.udpSocket = new DatagramSocket(0);
+        this.udpSocket.setSoTimeout(Constants.AUTHENTICATION_SOCKET_TIMEOUT);
     }
 
     public void stopListening()
@@ -39,13 +40,17 @@ public class AuthenticationSocket extends Thread
             while (this.isWorking)
             {
                 this.udpSocket.receive(datagramPacket);
-                String incomeAddress = datagramPacket.getAddress().getHostAddress();
                 int incomePort = datagramPacket.getPort();
+                String incomeAddress = datagramPacket.getSocketAddress().toString().replaceAll(":\\d+|/", "");
 
-                if(this.server.checkAuthentication(incomeAddress, this.authenticationSocketNumber))
+                //todo replace debug
+                System.out.println("received " + incomeAddress);
+
+                if (this.server.checkAuthentication(incomeAddress, this.authenticationSocketNumber))
                 {
-                    if(this.authenticationSocketNumber == this.server.numberOfAuthenticationSockets - 1)
+                    if (this.authenticationSocketNumber == this.server.numberOfAuthenticationSockets - 1)
                     {
+                        this.server.removeAddressFromAuthenticationList(incomeAddress, authenticationSocketNumber);
                         this.server.openSocketForSuchAddress(incomeAddress, incomePort);
                     }
                     else

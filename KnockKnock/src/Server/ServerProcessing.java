@@ -9,7 +9,12 @@ import java.net.Socket;
 public class ServerProcessing extends Thread
 {
     private final Socket socket;
-    private String messageFromClient, messageToClient;
+    private String messageFromClient, messageToClient = "Hello client!";
+
+    public ServerProcessing(Socket socket)
+    {
+        this.socket = socket;
+    }
 
     public ServerProcessing(Socket socket, String messageToClient)
     {
@@ -28,9 +33,11 @@ public class ServerProcessing extends Thread
             this.messageFromClient += line;
         }
 
-        out.print(messageFromClient);
+        out.print(messageToClient);
+        out.flush();
 
-        socket.close();
+        //TODO check for correctness
+        //this.socket.close();
     }
 
     @Override
@@ -38,5 +45,10 @@ public class ServerProcessing extends Thread
     {
         try { this.processClient(); }
         catch (IOException ioException) { ioException.printStackTrace(); }
+    }
+
+    public String getMessageFromClient()
+    {
+        return this.messageFromClient;
     }
 }

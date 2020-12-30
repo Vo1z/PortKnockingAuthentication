@@ -25,9 +25,9 @@ public class AuthenticationServer
 
     public void startServer()
     {
-        if (!isWorking)
+        if (!this.isWorking)
         {
-            isWorking = true;
+            this.isWorking = true;
             initializeServer();
 
             Arrays.stream(this.authenticationSockets)
@@ -70,15 +70,16 @@ public class AuthenticationServer
     {
         try
         {
-            ServerSocket serverSocket = new ServerSocket();
+            ServerSocket serverSocket = new ServerSocket(0);
             serverSocket.setSoTimeout(Constants.CONNECTION_TIMEOUT);
-            KnockUtils.sendDatagramMessage(serverSocket.getInetAddress().toString(), remoteAddress, remotePort);
+            System.out.println("Message: " + Constants.IPV4_ADDRESS + ":" + serverSocket.getLocalPort());
+            KnockUtils.sendDatagramMessage(serverSocket.getInetAddress().getHostName() + ":" + serverSocket.getLocalPort(), remoteAddress, remotePort);
 
             Socket openedSocket = serverSocket.accept();
 
             //Checks if received socket address is corresponding to address that has passed authentication
             if (((InetSocketAddress)openedSocket.getRemoteSocketAddress()).getHostName().equals(remoteAddress))
-                (new ServerProcessing(serverSocket.accept(), "You were authenticated")).start();
+                (new ServerProcessing(serverSocket.accept())).start();
             else
                 openedSocket.close();
         }
@@ -88,11 +89,13 @@ public class AuthenticationServer
         }
     }
 
-    //Checks if given address was trying to access previous sockets
-    public boolean checkAuthentication(String addressOfRequester, int authenticationSocketNumber)
+    public synchronized boolean checkAuthentication(String addressOfRequester, int authenticationSocketNumber)
     {
+        if (this.authenticationAddresses[authenticationSocketNumber].contains(addressOfRequester))
+            return false;
+
         for(int i = 0; i < authenticationSocketNumber; i++)
-            if (!this.authenticationAddresses[i].contains(addressOfRequester) || this.authenticationAddresses[i] == null)
+            if (!this.authenticationAddresses[i].contains(addressOfRequester))
                 return false;
 
         return true;
@@ -105,7 +108,7 @@ public class AuthenticationServer
 
     public synchronized void removeAddressFromAuthenticationList(String address, int socketAuthenticationNumber)
     {
-        for(int i = socketAuthenticationNumber; i >= 0; i--)
+        for(int i = 0; i <= socketAuthenticationNumber; i++)
             this.authenticationAddresses[i].remove(address);
     }
 
@@ -117,7 +120,7 @@ public class AuthenticationServer
 
     public int[] getAuthenticationPorts()
     {
-        if(authenticationSockets == null)
+        if(this.authenticationSockets == null)
             return null;
 
         return Arrays.stream(this.authenticationSockets)

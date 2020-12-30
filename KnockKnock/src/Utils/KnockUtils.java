@@ -21,12 +21,14 @@ public class KnockUtils
         try
         {
             byte[] buffer = message.getBytes();
-            DatagramSocket datagramSocket = new DatagramSocket();
+            DatagramSocket datagramSocket = new DatagramSocket(0);
             DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(destinationAddress), destinationPort);
 
             datagramSocket.send(datagramPacket);
+
+            Thread.sleep(Constants.MESSAGE_DELAY_MILLISECONDS);
         }
-        catch (IOException e)
+        catch (IOException | InterruptedException e)
         {
             e.printStackTrace();
         }
