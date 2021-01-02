@@ -34,24 +34,28 @@ public class AuthenticationClient
 
     public void startClient()
     {
-        try
+        startKnocking();
+        new Thread(() ->
         {
-            startKnocking();
-            listenToServer();
-        }
-        catch (IOException ioException)
-        {
-            ioException.printStackTrace();
-        }
+            try
+            {
+                listenToServer();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
-    private void startKnocking()
+    public void startKnocking()
     {
+        //FIXME replace KnockUtils.sendDatagramMessage() with single separated socket as it sends datagrams from different ports each time
         for (int authenticationServerPort : this.authenticationServerPorts)
             KnockUtils.sendDatagramMessage(this.messageToServer, this.authenticationServerAddress, authenticationServerPort);
     }
 
-    private void listenToServer() throws IOException
+    public void listenToServer() throws IOException
     {
         byte[] buffer = new byte[Constants.MAX_DATAGRAM_SIZE];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
@@ -61,6 +65,8 @@ public class AuthenticationClient
         {
             datagramSocket.receive(datagramPacket);
 
+            //todo replace
+            System.out.println("Message from server: " + datagramPacket.getSocketAddress().toString().replaceAll(":\\d+|/", ""));
             if(datagramPacket.getSocketAddress().toString().replaceAll(":\\d+|/", "").equals(this.authenticationServerAddress))
             {
                 String socketInetAddress = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
@@ -74,20 +80,16 @@ public class AuthenticationClient
         }
     }
 
-    private void connectToServerSocket(String address, int port) throws IOException
+    public void connectToServerSocket(String address, int port) throws IOException
     {
         Socket socket = new Socket(address, port);
         PrintWriter out = new PrintWriter(socket.getOutputStream());
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        String line;
 
         out.println(this.messageToServer);
         out.flush();
 
-        while ((line = in.readLine()) != null)
-        {
-            this.messageFromServer += line;
-        }
+        this.messageFromServer += in.readLine();
 
         socket.close();
     }

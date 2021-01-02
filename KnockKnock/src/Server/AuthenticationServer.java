@@ -25,6 +25,8 @@ public class AuthenticationServer
 
     public void startServer()
     {
+        //todo replace
+        System.out.println("server started");
         if (!this.isWorking)
         {
             this.isWorking = true;
@@ -37,6 +39,8 @@ public class AuthenticationServer
 
     public void stopServer()
     {
+        //todo replace
+        System.out.println("server stopped");
         if(this.isWorking)
         {
             this.isWorking = false;
@@ -72,6 +76,7 @@ public class AuthenticationServer
         {
             ServerSocket serverSocket = new ServerSocket(0);
             serverSocket.setSoTimeout(Constants.CONNECTION_TIMEOUT);
+            //Todo remove
             System.out.println("Message: " + Constants.IPV4_ADDRESS + ":" + serverSocket.getLocalPort());
             KnockUtils.sendDatagramMessage(serverSocket.getInetAddress().getHostName() + ":" + serverSocket.getLocalPort(), remoteAddress, remotePort);
 
@@ -120,8 +125,11 @@ public class AuthenticationServer
 
     public int[] getAuthenticationPorts()
     {
+        if(!this.isWorking)
+            throw new RuntimeException("Server was not started yet");
         if(this.authenticationSockets == null)
             return null;
+
 
         return Arrays.stream(this.authenticationSockets)
                 .filter(Objects::nonNull)

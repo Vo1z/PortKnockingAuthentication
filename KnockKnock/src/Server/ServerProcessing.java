@@ -9,7 +9,8 @@ import java.net.Socket;
 public class ServerProcessing extends Thread
 {
     private final Socket socket;
-    private String messageFromClient, messageToClient = "Hello client!";
+    private String messageFromClient;
+    private String messageToClient = "Hello client!";
 
     public ServerProcessing(Socket socket)
     {
@@ -26,18 +27,18 @@ public class ServerProcessing extends Thread
     {
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-        String line;
+        StringBuffer received = new StringBuffer();
 
-        while ((line = in.readLine()) != null)
-        {
-            this.messageFromClient += line;
-        }
-
-        out.print(messageToClient);
+        out.println(this.messageToClient);
         out.flush();
 
-        //TODO check for correctness
-        //this.socket.close();
+        String line;
+        while ((line = in.readLine()) != null)
+            received.append(line);
+
+        this.messageFromClient = received.toString();
+
+        this.socket.close();
     }
 
     @Override
