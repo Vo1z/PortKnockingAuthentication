@@ -49,15 +49,10 @@ public class ServerApp
             checkCorrectnessForTwoArguments(args);
         }
 
-        if (args.length == 3)
-        {
-            checkCorrectnessForTwoArguments(args);
-            messageToClients = args[2];
-        }
-
         if(args.length > 3)
         {
             System.err.println("No such format for arguments");
+            System.err.println("There is a lot of arguments");
             System.exit(-1);
         }
     }
@@ -85,14 +80,6 @@ public class ServerApp
             System.exit(-1);
         }
 
-        if(args[1].matches("'.*'"))
-        {
-            messageToClients = args[1].replace("'", "");
-        }
-        else
-        {
-            System.err.println("No such format for arguments");
-            System.exit(-1);
-        }
+        messageToClients = args[1].replace("'", "");
     }
 }
