@@ -72,10 +72,9 @@ public class AuthenticationClient
             if(datagramPacket.getSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "").equals(this.authenticationServerAddress))
             {
                 String messageFromServer = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
-                String address = messageFromServer.replaceAll(Constants.PORT_REGEX, "").trim();
                 int port = Integer.parseInt(messageFromServer.replaceAll(Constants.ADDRESS_REGEX, "").trim());
 
-                connectToServerSocket(address, port);
+                connectToServerSocket(this.authenticationServerAddress, port);
 
                 break;
             }

@@ -24,6 +24,9 @@ public class ServerApp
             System.out.println("Such message will be send to all clients that passed authentication: " + "\"" + authenticationServer.getMessageToClients() + "\"");
             System.out.println("Server will be waiting client to knock in such order of authentication ports:");
             for (int i = 0; i < numberAuthenticationPorts; i++)
+                System.out.print(authenticationServer.getAuthenticationPorts()[i] + " ");
+            System.out.println();
+            for (int i = 0; i < numberAuthenticationPorts; i++)
                 System.out.println(i + " -> " + authenticationServer.getAuthenticationPorts()[i]);
             System.out.println();
 

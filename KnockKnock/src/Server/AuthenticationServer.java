@@ -90,9 +90,8 @@ public class AuthenticationServer
         {
             ServerSocket openedSocketForClient = new ServerSocket(0);
             openedSocketForClient.setSoTimeout(Constants.SERVER_SOCKET_CONNECTION_TIMEOUT);
-//            KnockUtils.sendDatagramMessage(remoteAddress + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
-            //todo replace
-            KnockUtils.sendDatagramMessage(Constants.IPV4_ADDRESS + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
+
+            KnockUtils.sendDatagramMessage(openedSocketForClient.getLocalPort() + "", remoteAddress, remotePort);
 
             Socket openedSocket = openedSocketForClient.accept();
             String clientAddress = openedSocket.getRemoteSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "");
