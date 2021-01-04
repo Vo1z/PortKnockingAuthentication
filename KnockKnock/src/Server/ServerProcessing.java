@@ -9,35 +9,28 @@ import java.net.Socket;
 public class ServerProcessing extends Thread
 {
     private final Socket socket;
+    private final AuthenticationServer server;
+    private final String messageToClient;
     private String messageFromClient;
-    private String messageToClient = "Hello client!";
 
-    public ServerProcessing(Socket socket)
+    public ServerProcessing(Socket socket, AuthenticationServer server)
     {
         this.socket = socket;
-    }
-
-    public ServerProcessing(Socket socket, String messageToClient)
-    {
-        this.socket = socket;
-        this.messageToClient = messageToClient;
+        this.server = server;
+        this.messageToClient = server.getMessageToClients();
     }
 
     private void processClient() throws IOException
     {
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-        StringBuffer received = new StringBuffer();
+
+        this.messageFromClient = in.readLine();
 
         out.println(this.messageToClient);
         out.flush();
 
-        String line;
-        while ((line = in.readLine()) != null)
-            received.append(line);
-
-        this.messageFromClient = received.toString();
-
+        this.server.addMessage(this.socket.getInetAddress().getHostAddress(), this.messageFromClient);
         this.socket.close();
     }
 

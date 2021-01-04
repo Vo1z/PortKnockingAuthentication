@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
 public class AuthenticationClient
@@ -17,61 +18,62 @@ public class AuthenticationClient
     public final String authenticationServerAddress;
     public final int[] authenticationServerPorts;
 
-    private String messageToServer = "Hello server!", messageFromServer = "";
+    private DatagramSocket clientKnocker;
 
-    public AuthenticationClient(String authenticationServerAddress, int... authenticationServerPorts)
-    {
-        this.authenticationServerAddress = authenticationServerAddress;
-        this.authenticationServerPorts = authenticationServerPorts;
-    }
+    private final String messageToServer;
+    private String messageFromServer;
 
     public AuthenticationClient(String authenticationServerAddress, String messageToServer, int... authenticationServerPorts)
     {
         this.authenticationServerAddress = authenticationServerAddress;
         this.authenticationServerPorts = authenticationServerPorts;
         this.messageToServer = messageToServer;
+        try { this.clientKnocker = new DatagramSocket(0); }
+        catch (SocketException e) { e.printStackTrace(); }
+    }
+
+    public AuthenticationClient(String authenticationServerAddress, int... authenticationServerPorts)
+    {
+        this.authenticationServerAddress = authenticationServerAddress;
+        this.authenticationServerPorts = authenticationServerPorts;
+        this.messageToServer = "Hello server!";
+        try { this.clientKnocker = new DatagramSocket(0); }
+        catch (SocketException e) { e.printStackTrace(); }
     }
 
     public void startClient()
     {
         startKnocking();
-        new Thread(() ->
+        try
         {
-            try
-            {
-                listenToServer();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }).start();
+            listenToServer();
+        }
+        catch (IOException ioException)
+        {
+            ioException.printStackTrace();
+        }
     }
 
     public void startKnocking()
     {
-        //FIXME replace KnockUtils.sendDatagramMessage() with single separated socket as it sends datagrams from different ports each time
         for (int authenticationServerPort : this.authenticationServerPorts)
-            KnockUtils.sendDatagramMessage(this.messageToServer, this.authenticationServerAddress, authenticationServerPort);
+            KnockUtils.sendDatagramMessageFromBoundedSocket(this.messageToServer, this.authenticationServerAddress, authenticationServerPort, this.clientKnocker);
     }
 
     public void listenToServer() throws IOException
     {
         byte[] buffer = new byte[Constants.MAX_DATAGRAM_SIZE];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
-        DatagramSocket datagramSocket = new DatagramSocket(0);
 
         while (true)
         {
-            datagramSocket.receive(datagramPacket);
+            this.clientKnocker.receive(datagramPacket);
 
-            //todo replace
-            System.out.println("Message from server: " + datagramPacket.getSocketAddress().toString().replaceAll(":\\d+|/", ""));
-            if(datagramPacket.getSocketAddress().toString().replaceAll(":\\d+|/", "").equals(this.authenticationServerAddress))
+            if(datagramPacket.getSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "").equals(this.authenticationServerAddress))
             {
-                String socketInetAddress = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
-                String address = socketInetAddress.replaceAll(":\\d+|/", "").trim();
-                int port = Integer.parseInt(socketInetAddress.replaceAll(".+&!(:\\d+)", "").trim());
+                String messageFromServer = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
+                String address = messageFromServer.replaceAll(Constants.PORT_REGEX, "").trim();
+                int port = Integer.parseInt(messageFromServer.replaceAll(Constants.ADDRESS_REGEX, "").trim());
 
                 connectToServerSocket(address, port);
 
@@ -85,11 +87,13 @@ public class AuthenticationClient
         Socket socket = new Socket(address, port);
         PrintWriter out = new PrintWriter(socket.getOutputStream());
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        StringBuilder received = new StringBuilder();
 
         out.println(this.messageToServer);
         out.flush();
 
-        this.messageFromServer += in.readLine();
+        received.append(in.readLine());
+        this.messageFromServer = received.toString();
 
         socket.close();
     }
@@ -97,5 +101,10 @@ public class AuthenticationClient
     public String getMessageFromServer()
     {
         return this.messageFromServer;
+    }
+
+    public String getMessageToServer()
+    {
+        return  this.messageToServer;
     }
 }

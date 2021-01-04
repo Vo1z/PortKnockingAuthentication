@@ -1,6 +1,6 @@
 package Server;
 
-import Server.AuthenticationServer;
+import Utils.Constants;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,6 +17,8 @@ public class AuthenticationServerTest
     @Before @Test
     public void isWorkingBefore()
     {
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = true;
+
         this.server.startServer();
         Assert.assertTrue(this.server.isWorking());
     }
@@ -26,6 +28,8 @@ public class AuthenticationServerTest
     {
         this.server.stopServer();
         Assert.assertFalse(this.server.isWorking());
+
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = false;
     }
 
     @Test
@@ -44,13 +48,8 @@ public class AuthenticationServerTest
     {
         this.server.stopServer();
 
-        Assert.assertNull(this.server.getAuthenticationPorts());
         Assert.assertFalse(this.server.isWorking());
-    }
-
-    @Test public void openSocketForSuchAddress()
-    {
-        Assert.fail();
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = false;
     }
 
     @Test

@@ -1,6 +1,7 @@
 package Client;
 
 import Server.AuthenticationServer;
+import Utils.Constants;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,6 +19,8 @@ public class AuthenticationClientTest
     @Before
     public void before()
     {
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = true;
+
         this.server.startServer();
         this.serverPorts = this.server.getAuthenticationPorts();
     }
@@ -26,15 +29,21 @@ public class AuthenticationClientTest
     public void after()
     {
         this.server.stopServer();
+
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = false;
     }
 
     @Test
     public void startClient() throws UnknownHostException, InterruptedException
     {
-        AuthenticationClient client = new AuthenticationClient(InetAddress.getByName("localhost").getHostAddress(), this.serverPorts);
+        String messageToServer = "Hello Server!";
+        AuthenticationClient client = new AuthenticationClient(InetAddress.getByName("localhost").getHostAddress(),
+                messageToServer, this.serverPorts);
         client.startClient();
 
-        Thread.sleep(5000);
-        Assert.fail();
+        Thread.sleep(500);
+
+        this.server.getMessagesFromAuthorisedClients().keySet()
+                .forEach(key -> Assert.assertEquals(this.server.getMessagesFromAuthorisedClients().get(key), messageToServer));
     }
 }

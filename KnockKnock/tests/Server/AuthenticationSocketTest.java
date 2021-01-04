@@ -1,6 +1,6 @@
 package Server;
 
-import Server.AuthenticationServer;
+import Utils.Constants;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,6 +20,8 @@ public class AuthenticationSocketTest
     @Before
     public void before()
     {
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = true;
+
         this.server.startServer();
         this.ports = this.server.getAuthenticationPorts();
     }
@@ -28,6 +30,8 @@ public class AuthenticationSocketTest
     public void after()
     {
         this.server.stopServer();
+
+        Constants.IS_RUNTIME_IN_DEBUG_MODE = false;
     }
 
     @Test
@@ -37,7 +41,7 @@ public class AuthenticationSocketTest
         String message = "knock";
         byte[] buffer = message.getBytes();
         DatagramSocket datagramSocket = new DatagramSocket();
-        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("localhost"), ports[0]);
+        DatagramPacket datagramPacket;
 
         for (int i = 0; i < numberOfRequests; i++)
         {

@@ -31,9 +31,6 @@ public class AuthenticationSocket extends Thread
     @Override
     public void run()
     {
-        //todo replace
-        System.out.println("AuthenticationSocket with port " + getPort() + " was started");
-
         this.isWorking = true;
         try
         {
@@ -47,9 +44,6 @@ public class AuthenticationSocket extends Thread
                         .replaceAll(Constants.ADDRESS_REGEX, "")
                         .replaceAll(":|/", ""));
                 String incomeAddress = datagramPacket.getSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "");
-
-                //todo replace debug
-                System.out.println("AuthenticationSocket received " + incomeAddress + ":" + incomePort);
 
                 if (this.server.checkAuthentication(incomeAddress, this.authenticationSocketNumber))
                 {

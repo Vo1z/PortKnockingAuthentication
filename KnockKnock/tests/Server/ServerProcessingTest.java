@@ -32,8 +32,9 @@ public class ServerProcessingTest
     public void processClient() throws IOException, InterruptedException
     {
         String messageToClient = "Hello client", messageToServerProcessing = "Hello ServerProcessing";
-        StringBuffer received = new StringBuffer();
-        ServerProcessing serverProcessing = new ServerProcessing(this.serverSocket.accept(), messageToClient);
+        AuthenticationServer authenticationServer = new AuthenticationServer(1, messageToClient);
+        StringBuilder received = new StringBuilder();
+        ServerProcessing serverProcessing = new ServerProcessing(this.serverSocket.accept(), authenticationServer);
         serverProcessing.start();
 
         this.out.println(messageToServerProcessing);

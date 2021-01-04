@@ -5,10 +5,7 @@ import Utils.KnockUtils;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class AuthenticationServer
 {
@@ -18,29 +15,42 @@ public class AuthenticationServer
     private volatile Set<String>[] authenticationAddresses;
     private boolean isWorking = false;
 
+    private Map<String, String> messagesFromAuthorisedClients;
+    private final String messageToClients;
+
+    public AuthenticationServer(int numberOfAuthenticationSockets, String messageToClients)
+    {
+        if(numberOfAuthenticationSockets > 0)
+            this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
+        else
+            throw new IllegalArgumentException("Number of authentication sockets can not be smaller then one");
+
+        this.messagesFromAuthorisedClients = new HashMap<>();
+        this.messageToClients = messageToClients;
+    }
+
     public AuthenticationServer(int numberOfAuthenticationSockets)
     {
-        this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
+        if(numberOfAuthenticationSockets > 0)
+            this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
+        else
+            throw new IllegalArgumentException("Number of authentication sockets can not be smaller then one");
+
+        this.messagesFromAuthorisedClients = new HashMap<>();
+        this.messageToClients = "Hello client!";
     }
 
     public void startServer()
     {
-        //todo replace
-        System.out.println("server started");
         if (!this.isWorking)
         {
             this.isWorking = true;
             initializeServer();
-
-            Arrays.stream(this.authenticationSockets)
-                    .forEach(Thread::start);
         }
     }
 
     public void stopServer()
     {
-        //todo replace
-        System.out.println("server stopped");
         if(this.isWorking)
         {
             this.isWorking = false;
@@ -49,6 +59,9 @@ public class AuthenticationServer
 
             this.authenticationAddresses = null;
             this.authenticationSockets = null;
+
+            if(!Constants.IS_RUNTIME_IN_DEBUG_MODE)
+                this.notifyAll();
         }
     }
 
@@ -61,6 +74,7 @@ public class AuthenticationServer
             for (int i = 0; i < this.authenticationSockets.length; i++)
             {
                 this.authenticationSockets[i] = new AuthenticationSocket(this, i);
+                this.authenticationSockets[i].start();
                 this.authenticationAddresses[i] = new HashSet<>();
             }
         }
@@ -74,17 +88,17 @@ public class AuthenticationServer
     {
         try
         {
-            ServerSocket serverSocket = new ServerSocket(0);
-            serverSocket.setSoTimeout(Constants.CONNECTION_TIMEOUT);
-            //Todo remove
-            System.out.println("Message: " + Constants.IPV4_ADDRESS + ":" + serverSocket.getLocalPort());
-            KnockUtils.sendDatagramMessage(serverSocket.getInetAddress().getHostName() + ":" + serverSocket.getLocalPort(), remoteAddress, remotePort);
+            ServerSocket openedSocketForClient = new ServerSocket(0);
+            openedSocketForClient.setSoTimeout(Constants.SERVER_SOCKET_CONNECTION_TIMEOUT);
+            KnockUtils.sendDatagramMessage(remoteAddress + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
+            //todo replace
+            //KnockUtils.sendDatagramMessage(Constants.IPV4_ADDRESS + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
 
-            Socket openedSocket = serverSocket.accept();
+            Socket openedSocket = openedSocketForClient.accept();
+            String clientAddress = openedSocket.getRemoteSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "");
 
-            //Checks if received socket address is corresponding to address that has passed authentication
-            if (((InetSocketAddress)openedSocket.getRemoteSocketAddress()).getHostName().equals(remoteAddress))
-                (new ServerProcessing(serverSocket.accept())).start();
+            if (clientAddress.equals(remoteAddress))
+                (new ServerProcessing(openedSocket,this)).start();
             else
                 openedSocket.close();
         }
@@ -137,8 +151,26 @@ public class AuthenticationServer
                 .toArray();
     }
 
+    public void addMessage(String address, String message)
+    {
+        this.messagesFromAuthorisedClients.put(address, message);
+        //todo replace
+        System.out.println("Client " + address + " responded with " + "\"" + message + "\"");
+    }
+
+    public Map<String, String> getMessagesFromAuthorisedClients()
+    {
+        return this.messagesFromAuthorisedClients;
+    }
+
     public Set<String>[] getAuthenticationAddresses()
     {
         return this.authenticationAddresses;
+    }
+
+
+    public String getMessageToClients()
+    {
+        return this.messageToClients;
     }
 }
