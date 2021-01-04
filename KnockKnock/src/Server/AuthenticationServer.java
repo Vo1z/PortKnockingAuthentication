@@ -15,7 +15,7 @@ public class AuthenticationServer
     private volatile Set<String>[] authenticationAddresses;
     private boolean isWorking = false;
 
-    private Map<String, String> messagesFromAuthorisedClients;
+    private final Map<String, String> messagesFromAuthorisedClients;
     private final String messageToClients;
 
     public AuthenticationServer(int numberOfAuthenticationSockets, String messageToClients)
@@ -90,9 +90,9 @@ public class AuthenticationServer
         {
             ServerSocket openedSocketForClient = new ServerSocket(0);
             openedSocketForClient.setSoTimeout(Constants.SERVER_SOCKET_CONNECTION_TIMEOUT);
-            KnockUtils.sendDatagramMessage(remoteAddress + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
+//            KnockUtils.sendDatagramMessage(remoteAddress + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
             //todo replace
-            //KnockUtils.sendDatagramMessage(Constants.IPV4_ADDRESS + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
+            KnockUtils.sendDatagramMessage(Constants.IPV4_ADDRESS + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
 
             Socket openedSocket = openedSocketForClient.accept();
             String clientAddress = openedSocket.getRemoteSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "");

@@ -47,8 +47,7 @@ public class ClientApp
                     .mapToInt(Integer::parseInt)
                     .toArray();
         }
-        else if (KnockUtils.checkIfSuchNetworkInterfaceExists(args[0]) &&
-                Arrays.stream(args).skip(1).allMatch(str -> str.matches("\\d+")))
+        else if (Arrays.stream(args).skip(1).allMatch(str -> str.matches("\\d+")))
         {
             serverAddress = args[0];
             ports = Arrays.stream(args)
@@ -56,12 +55,11 @@ public class ClientApp
                     .mapToInt(Integer::parseInt)
                     .toArray();
         }
-        else if (KnockUtils.checkIfSuchNetworkInterfaceExists(args[0])
-                && args[1].matches(".*")
+        else if (args[1].matches(".*")
                 && Arrays.stream(args).skip(2).allMatch(str -> str.matches("\\d+")))
         {
             serverAddress = args[0];
-            messageToServer = args[1].replace("'", "");
+            messageToServer = args[1];
             ports = Arrays.stream(args)
                     .skip(2)
                     .mapToInt(Integer::parseInt)

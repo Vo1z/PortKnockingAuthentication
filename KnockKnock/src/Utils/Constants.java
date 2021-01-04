@@ -17,16 +17,17 @@ public class Constants
     public static final String HOST_ADDRESS_REGEX = "(\\d+\\.)+(\\d+)";
     public static boolean IS_RUNTIME_IN_DEBUG_MODE = false;
 
-    public static String IPV4_ADDRESS; //On which address socket will be open for
-    static
-    {
-        try
-        {
-            IPV4_ADDRESS = InetAddress.getByName("localhost").getHostAddress();
-        }
-        catch (UnknownHostException e)
-        {
-            e.printStackTrace();
-        }
-    }
+    public static String IPV4_ADDRESS = "25.102.204.33"; //On which address socket will be open for
+    //todo replace
+//    static
+//    {
+//        try
+//        {
+//            IPV4_ADDRESS = InetAddress.getByName("localhost").getHostAddress();
+//        }
+//        catch (UnknownHostException e)
+//        {
+//            e.printStackTrace();
+//        }
+//    }
 }
