@@ -6,31 +6,32 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class ServerProcessing implements Runnable
+public class ServerProcessing extends Thread
 {
     private final Socket socket;
-    private String messageFromClient, messageToClient;
+    private final AuthenticationServer server;
+    private final String messageToClient;
+    private String messageFromClient;
 
-    ServerProcessing(Socket socket, String messageToClient)
+    public ServerProcessing(Socket socket, AuthenticationServer server)
     {
         this.socket = socket;
-        this.messageToClient = messageToClient;
+        this.server = server;
+        this.messageToClient = server.getMessageToClients();
     }
 
     private void processClient() throws IOException
     {
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-        String line;
 
-        while ((line = in.readLine()) != null)
-        {
-            this.messageFromClient += line;
-        }
+        this.messageFromClient = in.readLine();
 
-        out.print(messageFromClient);
+        out.println(this.messageToClient);
+        out.flush();
 
-        socket.close();
+        this.server.addMessage(this.socket.getInetAddress().getHostAddress(), this.messageFromClient);
+        this.socket.close();
     }
 
     @Override
@@ -38,5 +39,10 @@ public class ServerProcessing implements Runnable
     {
         try { this.processClient(); }
         catch (IOException ioException) { ioException.printStackTrace(); }
+    }
+
+    public String getMessageFromClient()
+    {
+        return this.messageFromClient;
     }
 }
