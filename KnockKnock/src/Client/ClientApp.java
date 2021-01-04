@@ -57,7 +57,7 @@ public class ClientApp
                     .toArray();
         }
         else if (KnockUtils.checkIfSuchNetworkInterfaceExists(args[0])
-                && args[1].matches("'.*'")
+                && args[1].matches(".*")
                 && Arrays.stream(args).skip(2).allMatch(str -> str.matches("\\d+")))
         {
             serverAddress = args[0];
