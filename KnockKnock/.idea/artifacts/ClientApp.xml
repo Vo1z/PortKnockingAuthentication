@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="ClientApp">
-    <output-path>$PROJECT_DIR$/out/artifacts/ClientApp</output-path>
+    <output-path>$PROJECT_DIR$/../Releases/Client</output-path>
     <root id="archive" name="KnockKnock.jar">
       <element id="directory" name="META-INF">
         <element id="file-copy" path="$PROJECT_DIR$/ClientManifest/META-INF/MANIFEST.MF" />
