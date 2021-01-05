@@ -6,9 +6,9 @@ import java.util.*;
 
 public class KnockUtils
 {
-    public static<T> T[] shuffleArray(T[] arrayToMix)
+    public static<T> T[] shuffleArray(T[] arrayToShuffle)
     {
-        List<T> shuffledList = Arrays.asList(arrayToMix);
+        List<T> shuffledList = Arrays.asList(arrayToShuffle);
         Collections.shuffle(shuffledList);
 
         return (T[])shuffledList.toArray();

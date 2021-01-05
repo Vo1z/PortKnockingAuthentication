@@ -1,6 +1,6 @@
 package Client;
 
-import Utils.KnockUtils;
+import Utils.Constants;
 
 import java.util.Arrays;
 
@@ -21,9 +21,9 @@ public class ClientApp
         else
             authenticationClient = new AuthenticationClient(serverAddress, ports);
 
-        System.out.println("Client was started");
-        System.out.println("Such message will be send to server: " + "\"" + authenticationClient.getMessageToServer() + "\"");
-        System.out.println("Client will be knocking in such internet socket addresses:");
+        System.out.println("-Client was started");
+        System.out.println("-Such message will be send to server: " + "\"" + authenticationClient.getMessageToServer() + "\"");
+        System.out.println("-Client will be knocking in such internet socket addresses:");
         for(int i = 0; i < ports.length; i++)
             System.out.println(i + " -> " + serverAddress + ":" + ports[i]);
         System.out.println();
@@ -41,36 +41,42 @@ public class ClientApp
             System.exit(-1);
         }
 
-        if (Arrays.stream(args).allMatch(str -> str.matches("\\d+")))
+        if (args.length == 2)
         {
-            ports = Arrays.stream(args)
-                    .mapToInt(Integer::parseInt)
-                    .toArray();
+            if (args[0].matches(Constants.ADDRESS_REGEX_ON_ARGUMENTS)
+                    && Arrays.stream(args).skip(1).allMatch(str -> str.matches("\\d+")))
+            {
+                serverAddress = args[0];
+                ports = Arrays.stream(args)
+                        .skip(1)
+                        .mapToInt(Integer::parseInt)
+                        .toArray();
+            }
+            else
+            {
+                System.err.println("Input for server address or ports was given incorrectly");
+                System.exit(-1);
+            }
         }
-        else if (KnockUtils.checkIfSuchNetworkInterfaceExists(args[0]) &&
-                Arrays.stream(args).skip(1).allMatch(str -> str.matches("\\d+")))
+
+        if (args.length >= 3)
         {
-            serverAddress = args[0];
-            ports = Arrays.stream(args)
-                    .skip(1)
-                    .mapToInt(Integer::parseInt)
-                    .toArray();
-        }
-        else if (KnockUtils.checkIfSuchNetworkInterfaceExists(args[0])
-                && args[1].matches(".*")
-                && Arrays.stream(args).skip(2).allMatch(str -> str.matches("\\d+")))
-        {
-            serverAddress = args[0];
-            messageToServer = args[1].replace("'", "");
-            ports = Arrays.stream(args)
-                    .skip(2)
-                    .mapToInt(Integer::parseInt)
-                    .toArray();
-        }
-        else
-        {
-            System.err.println("No such format for arguments");
-            System.exit(-1);
+            if (args[0].matches(Constants.ADDRESS_REGEX_ON_ARGUMENTS)
+                    && args[1].matches(".+")
+                    && Arrays.stream(args).skip(2).allMatch(str -> str.matches("\\d+")))
+            {
+                serverAddress = args[0];
+                messageToServer = args[1];
+                ports = Arrays.stream(args)
+                        .skip(2)
+                        .mapToInt(Integer::parseInt)
+                        .toArray();
+            }
+            else
+            {
+                System.err.println("Input for server address, message to server or ports was given incorrectly");
+                System.exit(-1);
+            }
         }
     }
 }

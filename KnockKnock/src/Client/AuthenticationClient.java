@@ -7,10 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 public class AuthenticationClient
@@ -28,7 +25,11 @@ public class AuthenticationClient
         this.authenticationServerAddress = authenticationServerAddress;
         this.authenticationServerPorts = authenticationServerPorts;
         this.messageToServer = messageToServer;
-        try { this.clientKnocker = new DatagramSocket(0); }
+        try
+        {
+            this.clientKnocker = new DatagramSocket(0);
+            this.clientKnocker.setSoTimeout(Constants.CLIENT_SOCKET_TIMEOUT);
+        }
         catch (SocketException e) { e.printStackTrace(); }
     }
 
@@ -37,7 +38,11 @@ public class AuthenticationClient
         this.authenticationServerAddress = authenticationServerAddress;
         this.authenticationServerPorts = authenticationServerPorts;
         this.messageToServer = "Hello server!";
-        try { this.clientKnocker = new DatagramSocket(0); }
+        try
+        {
+            this.clientKnocker = new DatagramSocket(0);
+            this.clientKnocker.setSoTimeout(Constants.CLIENT_SOCKET_TIMEOUT);
+        }
         catch (SocketException e) { e.printStackTrace(); }
     }
 
@@ -65,19 +70,44 @@ public class AuthenticationClient
         byte[] buffer = new byte[Constants.MAX_DATAGRAM_SIZE];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
-        while (true)
+        if (Constants.IS_CLIENT_HAS_INFINITE_LIFETIME)
         {
-            this.clientKnocker.receive(datagramPacket);
-
-            if(datagramPacket.getSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "").equals(this.authenticationServerAddress))
+            while (true)
             {
-                String messageFromServer = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
-                String address = messageFromServer.replaceAll(Constants.PORT_REGEX, "").trim();
-                int port = Integer.parseInt(messageFromServer.replaceAll(Constants.ADDRESS_REGEX, "").trim());
+                this.clientKnocker.receive(datagramPacket);
 
-                connectToServerSocket(address, port);
+                if (datagramPacket.getSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "").equals(this.authenticationServerAddress))
+                {
+                    String messageFromServer = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
+                    int port = Integer.parseInt(messageFromServer.replaceAll(Constants.ADDRESS_REGEX, "").trim());
 
-                break;
+                    connectToServerSocket(this.authenticationServerAddress, port);
+
+                    break;
+                }
+            }
+        }
+        else
+        {
+            try
+            {
+                this.clientKnocker.receive(datagramPacket);
+
+                if (datagramPacket.getSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "").equals(this.authenticationServerAddress))
+                {
+                    String messageFromServer = new String(datagramPacket.getData(), StandardCharsets.UTF_8);
+                    int port = Integer.parseInt(messageFromServer.replaceAll(Constants.ADDRESS_REGEX, "").trim());
+
+                    connectToServerSocket(this.authenticationServerAddress, port);
+
+                    return;
+                }
+            }
+            catch (SocketTimeoutException ex)
+            {
+                System.err.println("ERROR: There was no response from the server before timeout");
+                System.err.println("Terminating...");
+                System.exit(-1);
             }
         }
     }

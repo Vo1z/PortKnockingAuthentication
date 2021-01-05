@@ -4,7 +4,9 @@ import Utils.Constants;
 import Utils.KnockUtils;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.*;
 
 public class AuthenticationServer
@@ -15,7 +17,7 @@ public class AuthenticationServer
     private volatile Set<String>[] authenticationAddresses;
     private boolean isWorking = false;
 
-    private Map<String, String> messagesFromAuthorisedClients;
+    private final Map<String, String> messagesFromAuthorisedClients;
     private final String messageToClients;
 
     public AuthenticationServer(int numberOfAuthenticationSockets, String messageToClients)
@@ -45,7 +47,22 @@ public class AuthenticationServer
         if (!this.isWorking)
         {
             this.isWorking = true;
-            initializeServer();
+
+            try
+            {
+                this.authenticationSockets = new AuthenticationSocket[this.numberOfAuthenticationSockets];
+                this.authenticationAddresses = new HashSet[this.numberOfAuthenticationSockets];
+                for (int i = 0; i < this.authenticationSockets.length; i++)
+                {
+                    this.authenticationSockets[i] = new AuthenticationSocket(this, i);
+                    this.authenticationSockets[i].start();
+                    this.authenticationAddresses[i] = new HashSet<>();
+                }
+            }
+            catch (SocketException e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -65,34 +82,14 @@ public class AuthenticationServer
         }
     }
 
-    private void initializeServer()
-    {
-        try
-        {
-            this.authenticationSockets = new AuthenticationSocket[this.numberOfAuthenticationSockets];
-            this.authenticationAddresses = new HashSet[this.numberOfAuthenticationSockets];
-            for (int i = 0; i < this.authenticationSockets.length; i++)
-            {
-                this.authenticationSockets[i] = new AuthenticationSocket(this, i);
-                this.authenticationSockets[i].start();
-                this.authenticationAddresses[i] = new HashSet<>();
-            }
-        }
-        catch (SocketException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
     public void openSocketForSuchAddress(String remoteAddress, int remotePort)
     {
         try
         {
             ServerSocket openedSocketForClient = new ServerSocket(0);
             openedSocketForClient.setSoTimeout(Constants.SERVER_SOCKET_CONNECTION_TIMEOUT);
-            KnockUtils.sendDatagramMessage(remoteAddress + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
-            //todo replace
-            //KnockUtils.sendDatagramMessage(Constants.IPV4_ADDRESS + ":" + openedSocketForClient.getLocalPort(), remoteAddress, remotePort);
+
+            KnockUtils.sendDatagramMessage(openedSocketForClient.getLocalPort() + "", remoteAddress, remotePort);
 
             Socket openedSocket = openedSocketForClient.accept();
             String clientAddress = openedSocket.getRemoteSocketAddress().toString().replaceAll(Constants.PORT_REGEX, "");
@@ -163,14 +160,13 @@ public class AuthenticationServer
         return this.messagesFromAuthorisedClients;
     }
 
-    public Set<String>[] getAuthenticationAddresses()
-    {
-        return this.authenticationAddresses;
-    }
-
-
     public String getMessageToClients()
     {
         return this.messageToClients;
+    }
+
+    public Set<String>[] getAuthenticationAddresses()
+    {
+        return this.authenticationAddresses;
     }
 }
