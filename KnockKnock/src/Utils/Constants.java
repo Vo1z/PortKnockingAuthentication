@@ -1,8 +1,5 @@
 package Utils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 public class Constants
 {
     private static final int MIN_MTU = 576;
@@ -14,20 +11,7 @@ public class Constants
     public static final int MESSAGE_DELAY_MILLISECONDS = 30;
     public static final String PORT_REGEX = ":\\d+|/";
     public static final String ADDRESS_REGEX = "(\\d+(\\.|:)+)|/";
-    public static final String HOST_ADDRESS_REGEX = "(\\d+\\.)+(\\d+)";
+    public static final String ADDRESS_REGEX_ON_ARGUMENTS = "(\\d+\\.)+(\\d+)?";
     public static boolean IS_RUNTIME_IN_DEBUG_MODE = false;
 
-    public static String IPV4_ADDRESS = "25.102.204.33"; //On which address socket will be open for
-    //todo replace
-//    static
-//    {
-//        try
-//        {
-//            IPV4_ADDRESS = InetAddress.getByName("localhost").getHostAddress();
-//        }
-//        catch (UnknownHostException e)
-//        {
-//            e.printStackTrace();
-//        }
-//    }
 }
