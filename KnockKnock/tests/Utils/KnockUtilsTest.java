@@ -74,4 +74,15 @@ public class KnockUtilsTest
         Assert.assertTrue(KnockUtils.getAllAvailableInetInetInterfaces().contains(loopback));
         Assert.assertTrue(KnockUtils.getAllAvailableInetInetInterfaces().contains(localHost));
     }
+
+    @Test
+    public void indexOf()
+    {
+        String[] array = new String[]{"00","x","sd","-n","a","d","8","5","3","2"};
+        int indexOfElement = 3;
+        String element = array[indexOfElement];
+
+        Assert.assertEquals(indexOfElement, KnockUtils.indexOf(array, element));
+        Assert.assertEquals(-1, KnockUtils.indexOf(array, "NotExistingElement"));
+    }
 }
