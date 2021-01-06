@@ -14,6 +14,13 @@ public class ServerApp
 
     public static void main(String[] args) throws InterruptedException
     {
+        if(args.length == 1 && args[0].equals("--help"))
+        {
+            System.out.println("-p <[your custom ports for knocking...]>" + "\n" +
+                    "-m <[message to clients(optional)]>" + "\n" +
+                    "-n <[number of ports for auto generation(optional)]>");
+            System.exit(0);
+        }
         checkArgumentCorrectness(args);
 
         //customPorts + message
@@ -31,6 +38,7 @@ public class ServerApp
         else
         {
             System.err.println("Unknown format for arguments");
+            System.err.println("Try to execute --help");
             System.exit(-1);
         }
 
