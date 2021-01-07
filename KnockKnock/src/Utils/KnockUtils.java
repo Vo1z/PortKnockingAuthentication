@@ -3,6 +3,7 @@ package Utils;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class KnockUtils
 {
@@ -109,5 +110,13 @@ public class KnockUtils
         }
 
         return addresses;
+    }
+
+    public static<T> int indexOf(T[] array, T find)
+    {
+        return IntStream.range(0, array.length)
+                .filter(i -> find.equals(array[i]))
+                .findFirst()
+                .orElse(-1);
     }
 }

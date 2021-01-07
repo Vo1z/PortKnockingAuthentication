@@ -12,6 +12,7 @@ import java.util.*;
 public class AuthenticationServer
 {
     public final int numberOfAuthenticationSockets;
+    public final int[] customUserPorts;
 
     private AuthenticationSocket[] authenticationSockets;
     private volatile Set<String>[] authenticationAddresses;
@@ -20,26 +21,48 @@ public class AuthenticationServer
     private final Map<String, String> messagesFromAuthorisedClients;
     private final String messageToClients;
 
-    public AuthenticationServer(int numberOfAuthenticationSockets, String messageToClients)
+    public AuthenticationServer(String messageToClients, int numberOfAuthenticationSockets)
     {
-        if(numberOfAuthenticationSockets > 0)
-            this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
-        else
+        if(numberOfAuthenticationSockets < 0)
             throw new IllegalArgumentException("Number of authentication sockets can not be smaller then one");
 
+        this.customUserPorts = null;
+        this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
         this.messagesFromAuthorisedClients = new HashMap<>();
         this.messageToClients = messageToClients;
     }
 
     public AuthenticationServer(int numberOfAuthenticationSockets)
     {
-        if(numberOfAuthenticationSockets > 0)
-            this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
-        else
+        if(numberOfAuthenticationSockets < 0)
             throw new IllegalArgumentException("Number of authentication sockets can not be smaller then one");
 
+        this.customUserPorts = null;
+        this.numberOfAuthenticationSockets = numberOfAuthenticationSockets;
         this.messagesFromAuthorisedClients = new HashMap<>();
         this.messageToClients = "Hello client!";
+    }
+
+    public AuthenticationServer(int... customUserPorts)
+    {
+        if (Arrays.stream(customUserPorts).anyMatch(port -> port < 0))
+            throw new IllegalArgumentException("Port < 0");
+
+        this.customUserPorts = customUserPorts;
+        this.numberOfAuthenticationSockets = customUserPorts.length;
+        this.messagesFromAuthorisedClients = new HashMap<>();
+        this.messageToClients = "Hello client!";
+    }
+
+    public AuthenticationServer(String messageToClients, int... customUserPorts)
+    {
+        if (Arrays.stream(customUserPorts).anyMatch(port -> port < 0))
+            throw new IllegalArgumentException("Port < 0");
+
+        this.customUserPorts = customUserPorts;
+        this.numberOfAuthenticationSockets = customUserPorts.length;
+        this.messagesFromAuthorisedClients = new HashMap<>();
+        this.messageToClients = messageToClients;
     }
 
     public void startServer()
@@ -52,11 +75,24 @@ public class AuthenticationServer
             {
                 this.authenticationSockets = new AuthenticationSocket[this.numberOfAuthenticationSockets];
                 this.authenticationAddresses = new HashSet[this.numberOfAuthenticationSockets];
-                for (int i = 0; i < this.authenticationSockets.length; i++)
+
+                if(this.customUserPorts == null)
                 {
-                    this.authenticationSockets[i] = new AuthenticationSocket(this, i);
-                    this.authenticationSockets[i].start();
-                    this.authenticationAddresses[i] = new HashSet<>();
+                    for (int i = 0; i < this.authenticationSockets.length; i++)
+                    {
+                        this.authenticationSockets[i] = new AuthenticationSocket(this, i);
+                        this.authenticationSockets[i].start();
+                        this.authenticationAddresses[i] = new HashSet<>();
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < this.authenticationSockets.length; i++)
+                    {
+                        this.authenticationSockets[i] = new AuthenticationSocket(this, this.customUserPorts[i], i);
+                        this.authenticationSockets[i].start();
+                        this.authenticationAddresses[i] = new HashSet<>();
+                    }
                 }
             }
             catch (SocketException e)

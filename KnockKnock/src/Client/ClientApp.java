@@ -1,8 +1,6 @@
 package Client;
 
-import Utils.Constants;
-
-import java.util.Arrays;
+import Utils.KnockUtils;
 
 public class ClientApp
 {
@@ -14,6 +12,13 @@ public class ClientApp
 
     public static void main(String[] args)
     {
+        if(args.length == 1 && args[0].equals("--help"))
+        {
+            System.out.println("-s <[server address]>" + "\n" +
+                    "-p <[ports to knock...]>" + "\n" +
+                    "-m <[message to server(optional)]>");
+            System.exit(0);
+        }
         checkArgumentCorrectness(args);
 
         if(messageToServer != null)
@@ -35,48 +40,56 @@ public class ClientApp
 
     private static void checkArgumentCorrectness(String[] args)
     {
-        if (args == null || args.length == 0)
+        int indexOfServerAddress = KnockUtils.indexOf(args, "-s");
+        int indexOfPorts = KnockUtils.indexOf(args, "-p");
+        int indexOfMessage = KnockUtils.indexOf(args, "-m");
+        int firstBiggerIndexThanPort;
+        if(indexOfServerAddress > indexOfPorts && indexOfMessage > indexOfPorts)
+            firstBiggerIndexThanPort = Math.min(indexOfMessage, indexOfServerAddress);
+        else
+            firstBiggerIndexThanPort = Math.max(indexOfMessage, indexOfServerAddress);
+
+        if (indexOfMessage != -1)
+            messageToServer = args[indexOfMessage + 1];
+        if (indexOfServerAddress != -1)
+            serverAddress = args[indexOfServerAddress + 1];
+        else
         {
-            System.err.println("Missing arguments");
+            System.err.println("Server address is not specified (-s)");
+            System.err.println("Try to execute --help");
             System.exit(-1);
         }
 
-        if (args.length == 2)
+        if (indexOfPorts != -1)
         {
-            if (args[0].matches(Constants.ADDRESS_REGEX_ON_ARGUMENTS)
-                    && Arrays.stream(args).skip(1).allMatch(str -> str.matches("\\d+")))
+            if (firstBiggerIndexThanPort > indexOfPorts)
             {
-                serverAddress = args[0];
-                ports = Arrays.stream(args)
-                        .skip(1)
-                        .mapToInt(Integer::parseInt)
-                        .toArray();
+                ports = new int[firstBiggerIndexThanPort - indexOfPorts - 1];
+
+                int portIter = 0;
+                for (int i = indexOfPorts + 1; i < firstBiggerIndexThanPort; i++)
+                {
+                    ports[portIter] = Integer.parseInt(args[i]);
+                    portIter++;
+                }
             }
             else
             {
-                System.err.println("Input for server address or ports was given incorrectly");
-                System.exit(-1);
+                ports = new int[args.length - indexOfPorts - 1];
+
+                int portIter = 0;
+                for (int i = indexOfPorts + 1; i < args.length; i++)
+                {
+                    ports[portIter] = Integer.parseInt(args[i]);
+                    portIter++;
+                }
             }
         }
-
-        if (args.length >= 3)
+        else
         {
-            if (args[0].matches(Constants.ADDRESS_REGEX_ON_ARGUMENTS)
-                    && args[1].matches(".+")
-                    && Arrays.stream(args).skip(2).allMatch(str -> str.matches("\\d+")))
-            {
-                serverAddress = args[0];
-                messageToServer = args[1];
-                ports = Arrays.stream(args)
-                        .skip(2)
-                        .mapToInt(Integer::parseInt)
-                        .toArray();
-            }
-            else
-            {
-                System.err.println("Input for server address, message to server or ports was given incorrectly");
-                System.exit(-1);
-            }
+            System.err.println("Ports are not specified (-p)");
+            System.err.println("Try to execute --help");
+            System.exit(-1);
         }
     }
 }

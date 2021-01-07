@@ -13,7 +13,7 @@ public class AuthenticationSocket extends Thread
 
     private boolean isWorking = false;
     private final AuthenticationServer server;
-    private final DatagramSocket udpSocket;
+    private DatagramSocket udpSocket;
 
     public AuthenticationSocket(AuthenticationServer server, int authenticationNumber) throws SocketException
     {
@@ -21,6 +21,22 @@ public class AuthenticationSocket extends Thread
         this.server = server;
         this.udpSocket = new DatagramSocket(0);
         this.udpSocket.setSoTimeout(Constants.AUTHENTICATION_SOCKET_TIMEOUT);
+    }
+
+    public AuthenticationSocket(AuthenticationServer server, int customUserPort, int authenticationNumber)
+    {
+        this.authenticationSocketNumber = authenticationNumber;
+        this.server = server;
+        try
+        {
+            this.udpSocket = new DatagramSocket(customUserPort);
+            this.udpSocket.setSoTimeout(Constants.AUTHENTICATION_SOCKET_TIMEOUT);
+        }
+        catch (SocketException e)
+        {
+            System.err.println("Such port can not be opened in AuthenticationSocket: " + customUserPort);
+            System.exit(-1);
+        }
     }
 
     public void stopListening()
