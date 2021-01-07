@@ -21,7 +21,7 @@ public class ServerApp
                     "-n <[number of ports for auto generation(optional)]>");
             System.exit(0);
         }
-        checkArgumentCorrectness(args);
+        checkArgumentsCorrectness(args);
 
         //customPorts + message
         if (customUserPorts != null && messageToClients != null && numberAuthenticationPorts == -1)
@@ -56,7 +56,7 @@ public class ServerApp
         }
     }
 
-    private static void checkArgumentCorrectness(String[] args)
+    private static void checkArgumentsCorrectness(String[] args)
     {
         if (Arrays.stream(args).filter(s -> s.equals("-m")).count() > 1)
         {
